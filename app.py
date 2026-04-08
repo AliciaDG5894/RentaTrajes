@@ -31,38 +31,43 @@ con_pool = ThreadedConnectionPool(
     sslmode="require"
 )
 
+PUSHER_APP_ID = "2046017"
+PUSHER_KEY    = "b51b00ad61c8006b2e6f"
+PUSHER_SECRET = "d2ec35aa5498a18af7bf"
+PUSHER_CLUSTER = "us2"
+PUSHER_MSG    = "Hola Mundo!"
+
 def pusherRentas():
     pusher_client = pusher.Pusher(
-        app_id="2046017",
-        key="b51b00ad61c8006b2e6f",
-        secret="d2ec35aa5498a18af7bf",
-        cluster="us2",
+        app_id=PUSHER_APP_ID,
+        key=PUSHER_KEY,
+        secret=PUSHER_SECRET,
+        cluster=PUSHER_CLUSTER,
         ssl=True
     )
-    pusher_client.trigger("canalRentas", "eventoRentas", {"message": "Hola Mundo!"})
+    pusher_client.trigger("canalRentas", "eventoRentas", {"message": PUSHER_MSG})
     return make_response(jsonify({}))
 
 def pusherClientes():
     pusher_client = pusher.Pusher(
-        app_id="2046017",
-        key="b51b00ad61c8006b2e6f",
-        secret="d2ec35aa5498a18af7bf",
-        cluster="us2",
+        app_id=PUSHER_APP_ID,
+        key=PUSHER_KEY,
+        secret=PUSHER_SECRET,
+        cluster=PUSHER_CLUSTER,
         ssl=True
     )
-    pusher_client.trigger("canalClientes", "eventoClientes", {"message": "Hola Mundo!"})
+    pusher_client.trigger("canalClientes", "eventoClientes", {"message": PUSHER_MSG})
     return make_response(jsonify({}))
 
-# TRAJES
 def pusherProductos():
     pusher_client = pusher.Pusher(
-        app_id="2046017",
-        key="b51b00ad61c8006b2e6f",
-        secret="d2ec35aa5498a18af7bf",
-        cluster="us2",
+        app_id=PUSHER_APP_ID,
+        key=PUSHER_KEY,
+        secret=PUSHER_SECRET,
+        cluster=PUSHER_CLUSTER,
         ssl=True
     )
-    pusher_client.trigger("canalTrajes", "eventoTrajes", {"message": "Hola Mundo!"})
+    pusher_client.trigger("canalTrajes", "eventoTrajes", {"message": PUSHER_MSG})
 
 
 def login(fun):
