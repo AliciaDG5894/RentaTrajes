@@ -36,6 +36,7 @@ PUSHER_KEY     = os.environ.get("PUSHER_KEY")
 PUSHER_SECRET  = os.environ.get("PUSHER_SECRET")
 PUSHER_CLUSTER = os.environ.get("PUSHER_CLUSTER", "us2")
 PUSHER_MSG     = "Hola Mundo!"
+TIMEZONE = "America/Matamoros"
 
 def pusherRentas():
     pusher_client = pusher.Pusher(
@@ -95,7 +96,7 @@ def appLogin():
 
 @app.route("/fechaHora")
 def fechaHora():
-    tz    = pytz.timezone("America/Matamoros")
+    tz = pytz.timezone(TIMEZONE)
     ahora = datetime.datetime.now(tz)
     return ahora.strftime("%Y-%m-%d %H:%M:%S")
 
@@ -253,8 +254,8 @@ def guardarRentas():
         cliente         = request.form["idCliente"]
         traje           = request.form["idTraje"]
         descripcion     = request.form["descripcion"]
-        fechahorainicio = datetime.datetime.now(pytz.timezone("America/Matamoros"))
-        fechahorafin    = datetime.datetime.now(pytz.timezone("America/Matamoros"))
+        fechahorainicio = datetime.datetime.now(pytz.timezone(TIMEZONE))
+        fechahorafin    = datetime.datetime.now(pytz.timezone(TIMEZONE))
 
         cursor = con.cursor()
 
