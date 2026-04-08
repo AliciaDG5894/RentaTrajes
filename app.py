@@ -31,11 +31,11 @@ con_pool = ThreadedConnectionPool(
     sslmode="require"
 )
 
-PUSHER_APP_ID = "2046017"
-PUSHER_KEY    = "b51b00ad61c8006b2e6f"
-PUSHER_SECRET = "d2ec35aa5498a18af7bf"
-PUSHER_CLUSTER = "us2"
-PUSHER_MSG    = "Hola Mundo!"
+PUSHER_APP_ID  = os.environ.get("PUSHER_APP_ID")
+PUSHER_KEY     = os.environ.get("PUSHER_KEY")
+PUSHER_SECRET  = os.environ.get("PUSHER_SECRET")
+PUSHER_CLUSTER = os.environ.get("PUSHER_CLUSTER", "us2")
+PUSHER_MSG     = "Hola Mundo!"
 
 def pusherRentas():
     pusher_client = pusher.Pusher(
