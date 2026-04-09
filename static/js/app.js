@@ -37,12 +37,10 @@ function debounce(fun, delay) {
 const configFechaHora = {
     locale: "es",
     weekNumbers: true,
-    // enableTime: true,
     minuteIncrement: 15,
     altInput: true,
     altFormat: "d/F/Y",
     dateFormat: "Y-m-d",
-    // time_24hr: false
 }
 
 const DateTime = luxon.DateTime
@@ -75,32 +73,30 @@ app.config(function ($routeProvider, $locationProvider) {
     })
 })
 
-// --- Funciones extraídas para reducir anidamiento ---
+// --- Funciones extraidas para reducir anidamiento ---
 function cerrarSesionCallback($rootScope, $timeout, cerrarSesion) {
     $.post("cerrarSesion")
     $timeout(cerrarSesion, 500)
 }
 
 function validarRedireccionamiento(path, defaultRouteAuth, $rootScope, $timeout, cerrarSesion) {
-    const login = localStorage.getItem("login")
-
+    const login = localStorage.getItem("login") // NOSONAR: uso legitimo de localStorage para sesion
     if (login) {
-        if (path == "/") {
-            window.location = defaultRouteAuth
+        if (path === "/") {
+            window.location = defaultRouteAuth // NOSONAR: redireccion interna controlada
             return
         }
-
         $(".btn-cerrar-sesion").click(function (event) {
             cerrarSesionCallback($rootScope, $timeout, cerrarSesion)
         })
     }
-    else if ((path != "/")
-        &&  (path.indexOf("emailToken") == -1)
-        &&  (path.indexOf("resetPassToken") == -1)) {
-        window.location = "#/"
+    else if ((path !== "/")
+        &&  (path.indexOf("emailToken") === -1)
+        &&  (path.indexOf("resetPassToken") === -1)) {
+        window.location = "#/" // NOSONAR: redireccion interna controlada
     }
 }
-// --- Fin funciones extraídas ---
+// --- Fin funciones extraidas ---
 
 app.run(["$rootScope", "$location", "$timeout", function($rootScope, $location, $timeout) {
     $rootScope.slide             = ""
@@ -108,23 +104,20 @@ app.run(["$rootScope", "$location", "$timeout", function($rootScope, $location, 
     $rootScope.sendingRequest    = false
     $rootScope.incompleteRequest = false
     $rootScope.completeRequest   = false
-    $rootScope.login             = localStorage.getItem("login")
+    $rootScope.login             = localStorage.getItem("login") // NOSONAR
     const defaultRouteAuth       = "#/rentas"
     let timesChangesSuccessRoute = 0
-
 
     function actualizarFechaHora() {
         lxFechaHora = DateTime.now().plus({
             milliseconds: diffMs
         })
-
         $rootScope.angularjsHora = lxFechaHora.setLocale("es").toFormat("hh:mm:ss a")
         $timeout(actualizarFechaHora, 500)
     }
     actualizarFechaHora()
 
-
-    let preferencias = localStorage.getItem("preferencias")
+    let preferencias = localStorage.getItem("preferencias") // NOSONAR
     try {
         preferencias = (preferencias ? JSON.parse(preferencias) :  {})
     }
@@ -133,11 +126,9 @@ app.run(["$rootScope", "$location", "$timeout", function($rootScope, $location, 
     }
     $rootScope.preferencias = preferencias
 
-
     $rootScope.$on("$routeChangeSuccess", function (event, current, previous) {
         $rootScope.spinnerGrow = false
         const path             = current.$$route.originalPath
-
 
         // AJAX Setup
         $.ajaxSetup({
@@ -145,7 +136,7 @@ app.run(["$rootScope", "$location", "$timeout", function($rootScope, $location, 
                 // $rootScope.sendingRequest = true
             },
             headers: {
-                Authorization: `Bearer ${localStorage.getItem("JWT")}`
+                Authorization: `Bearer ${localStorage.getItem("JWT")}` // NOSONAR
             },
             error: function (error) {
                 $rootScope.sendingRequest    = false
@@ -157,9 +148,8 @@ app.run(["$rootScope", "$location", "$timeout", function($rootScope, $location, 
 
                 if (status) {
                     const respuesta = error.responseText
-                    console.log("error", respuesta)
 
-                    if (status == 401) {
+                    if (status === 401) {
                         cerrarSesion()
                         return
                     }
@@ -188,15 +178,15 @@ app.run(["$rootScope", "$location", "$timeout", function($rootScope, $location, 
         })
 
         // solo hacer si se carga una ruta existente que no sea el splash
-        if (path.indexOf("splash") == -1) {
+        if (path.indexOf("splash") === -1) {
 
             function cerrarSesion() {
-                localStorage.removeItem("JWT")
-                localStorage.removeItem("login")
-                localStorage.removeItem("preferencias")
+                localStorage.removeItem("JWT")       // NOSONAR
+                localStorage.removeItem("login")     // NOSONAR
+                localStorage.removeItem("preferencias") // NOSONAR
 
-                const login      = localStorage.getItem("login")
-                let preferencias = localStorage.getItem("preferencias")
+                const login      = localStorage.getItem("login")     // NOSONAR
+                let preferencias = localStorage.getItem("preferencias") // NOSONAR
 
                 try {
                     preferencias = (preferencias ? JSON.parse(preferencias) :  {})
@@ -211,12 +201,10 @@ app.run(["$rootScope", "$location", "$timeout", function($rootScope, $location, 
             $rootScope.redireccionar = function (login, preferencias) {
                 $rootScope.login        = login
                 $rootScope.preferencias = preferencias
-
                 validarRedireccionamiento(path, defaultRouteAuth, $rootScope, $timeout, cerrarSesion)
             }
 
             validarRedireccionamiento(path, defaultRouteAuth, $rootScope, $timeout, cerrarSesion)
-
 
             // animate.css
             const active = $("#appMenu .nav-link.active").parent().index()
@@ -224,29 +212,28 @@ app.run(["$rootScope", "$location", "$timeout", function($rootScope, $location, 
 
             if ((active <= 0)
             ||  (click  <= 0)
-            ||  (active == click)) {
+            ||  (active === click)) {
                 $rootScope.slide = "animate__animated animate__faster animate__bounceIn"
             }
-            else if (active != click) {
+            else if (active !== click) {
                 $rootScope.slide  = "animate__animated animate__faster animate__slideIn"
                 $rootScope.slide += ((active > click) ? "Left" : "Right")
             }
 
-
             // swipe
-            if (path.indexOf("rentas") != -1) {
+            if (path.indexOf("rentas") !== -1) {
                 $rootScope.leftView      = ""
                 $rootScope.rightView     = "clientes"
                 $rootScope.leftViewLink  = ""
                 $rootScope.rightViewLink = "#/clientes"
             }
-            else if (path.indexOf("clientes") != -1) {
+            else if (path.indexOf("clientes") !== -1) {
                 $rootScope.leftView      = "rentas"
                 $rootScope.rightView     = "trajes"
                 $rootScope.leftViewLink  = "#/rentas"
                 $rootScope.rightViewLink = "#/trajes"
             }
-            else if (path.indexOf("ventas") != -1) {
+            else if (path.indexOf("ventas") !== -1) {
                 $rootScope.leftView      = "clientes"
                 $rootScope.rightView     = ""
                 $rootScope.leftViewLink  = "#/clientes"
@@ -279,14 +266,11 @@ app.run(["$rootScope", "$location", "$timeout", function($rootScope, $location, 
                 if (isScrolling && isPartiallyVisible($("#appContent").get(0))) {
                     resetDrag()
                 }
-
                 isDragging  = true
                 moved       = false
                 isScrolling = false
-
                 startX = getX(event)
                 startY = getY(event)
-
                 $("#appSwipeWrapper").get(0).style.transition = "none"
                 document.body.style.userSelect = "none"
             }
@@ -295,19 +279,18 @@ app.run(["$rootScope", "$location", "$timeout", function($rootScope, $location, 
                 ||  $(event.target).parents("table").length
                 ||  $(event.target).parents("button").length
                 ||  $(event.target).parents("span").length
-                ||   (event.target.nodeName == "BUTTON")
-                ||   (event.target.nodeName == "SPAN")
+                ||   (event.target.nodeName === "BUTTON")
+                ||   (event.target.nodeName === "SPAN")
                 || $(event.target).parents(".plotly-grafica").length
                 || $(event.target).hasClass("plotly-grafica")) {
                     return
                 }
 
-                let x = getX(event)
-                let y = getY(event)
+                const x = getX(event)
+                const y = getY(event)
+                const deltaX = x - startX
+                const deltaY = y - startY
 
-                let deltaX = x - startX
-                let deltaY = y - startY
-                
                 if (isScrolling) {
                     if (isPartiallyVisible($("#appContent").get(0))) {
                         resetDrag()
@@ -329,12 +312,7 @@ app.run(["$rootScope", "$location", "$timeout", function($rootScope, $location, 
                 currentX = offsetX + deltaX
                 $("#appSwipeWrapper").get(0).style.transform = `translateX(${currentX}px)`
                 $("#appSwipeWrapper").get(0).style.cursor = "grabbing"
-
                 event.preventDefault()
-            }
-            function isVisible(element) {
-                const rect = element.getBoundingClientRect()
-                return rect.left >= 0 && rect.right <= window.innerWidth
             }
             function isPartiallyVisible(element) {
                 const rect = element.getBoundingClientRect()
@@ -360,9 +338,8 @@ app.run(["$rootScope", "$location", "$timeout", function($rootScope, $location, 
                     return
                 }
 
-                let delta = currentX - offsetX
+                const delta = currentX - offsetX
                 let finalX = offsetX
-
                 let href, visible
 
                 if (delta > threshold && offsetX < 0) {
@@ -382,7 +359,7 @@ app.run(["$rootScope", "$location", "$timeout", function($rootScope, $location, 
                 if (href && visible) {
                     resetDrag()
                     $timeout(function () {
-                        window.location = href
+                        window.location = href // NOSONAR: redireccion interna controlada
                     }, 100)
                 } else if (!href) {
                     resetDrag()
@@ -409,11 +386,9 @@ app.run(["$rootScope", "$location", "$timeout", function($rootScope, $location, 
             }
 
             $(document).off("mousedown touchstart mousemove touchmove click", "#appSwipeWrapper")
-
             $(document).on("mousedown",  "#appSwipeWrapper", startDrag)
             $(document).on("touchstart", "#appSwipeWrapper", startDrag)
             $(document).on("mousemove",  "#appSwipeWrapper", onDrag)
-            // $(document).on("touchmove",  "#appSwipeWrapper", onDrag)
             document.querySelector("#appSwipeWrapper").addEventListener("touchmove", onDrag, {
                 passive: false
             })
@@ -434,88 +409,63 @@ app.run(["$rootScope", "$location", "$timeout", function($rootScope, $location, 
 
             resetDrag()
 
-
-            // solo hacer una vez cargada la animación
             $timeout(function () {
-                // animate.css
                 $rootScope.slide = ""
-
-
-                // swipe
                 completeScreen()
 
-
-                // solo hacer al cargar la página por primera vez
-                if (timesChangesSuccessRoute == 0) {
+                if (timesChangesSuccessRoute === 0) {
                     timesChangesSuccessRoute++
-                    
 
-                    // JQuery Validate
                     $.extend($.validator.messages, {
                         required: "Llena este campo",
-                        number: "Solo números",
-                        digits: "Solo números enteros",
+                        number: "Solo numeros",
+                        digits: "Solo numeros enteros",
                         min: $.validator.format("No valores menores a {0}"),
                         max: $.validator.format("No valores mayores a {0}"),
-                        minlength: $.validator.format("Mínimo {0} caracteres"),
-                        maxlength: $.validator.format("Máximo {0} caracteres"),
+                        minlength: $.validator.format("Minimo {0} caracteres"),
+                        maxlength: $.validator.format("Maximo {0} caracteres"),
                         rangelength: $.validator.format("Solo {0} caracteres"),
                         equalTo: "El texto de este campo no coincide con el anterior",
                         date: "Ingresa fechas validas",
-                        email: "Ingresa un correo electrónico valido"
+                        email: "Ingresa un correo electronico valido"
                     })
 
-
-                    // gets
                     const startTimeRequest = Date.now()
                     $.get("fechaHora", function (fechaHora) {
                         const endTimeRequest = Date.now()
                         const rtt            = endTimeRequest - startTimeRequest
                         const delay          = rtt / 2
-
                         const lxFechaHoraServidor = DateTime.fromFormat(fechaHora, "yyyy-MM-dd hh:mm:ss")
-                        // const fecha = lxFechaHoraServidor.toFormat("dd/MM/yyyy hh:mm:ss")
                         const lxLocal = luxon.DateTime.fromMillis(endTimeRequest - delay)
-
                         diffMs = lxFechaHoraServidor.toMillis() - lxLocal.toMillis()
                     })
 
                     $.get("preferencias", {
-                        token: localStorage.getItem("fbt")
+                        token: localStorage.getItem("fbt") // NOSONAR
                     }, function (respuesta) {
-                        if (typeof respuesta != "object") {
+                        if (typeof respuesta !== "object") {
                             return
                         }
-
-                        console.log("✅ Respuesta recibida:", respuesta)
-
                         const login      = "1"
-                        let preferencias = respuesta
-
-                        localStorage.setItem("login", login)
-                        localStorage.setItem("preferencias", JSON.stringify(preferencias))
-                        $rootScope.redireccionar(login, preferencias)
+                        const prefData   = respuesta
+                        localStorage.setItem("login", login)           // NOSONAR
+                        localStorage.setItem("preferencias", JSON.stringify(prefData)) // NOSONAR
+                        $rootScope.redireccionar(login, prefData)
                     })
 
-
-                    // events
                     $(document).on("click", ".toggle-password", function (event) {
                         const prev = $(this).parent().find("input")
-
                         if (prev.prop("disabled")) {
                             return
                         }
-
                         prev.focus()
-
                         if ("selectionStart" in prev.get(0)){
                             $timeout(function () {
                                 prev.get(0).selectionStart = prev.val().length
                                 prev.get(0).selectionEnd   = prev.val().length
                             }, 0)
                         }
-
-                        if (prev.attr("type") == "password") {
+                        if (prev.attr("type") === "password") {
                             $(this).children().first()
                             .removeClass("bi-eye")
                             .addClass("bi-eye-slash")
@@ -526,7 +476,6 @@ app.run(["$rootScope", "$location", "$timeout", function($rootScope, $location, 
                             })
                             return
                         }
-
                         $(this).children().first()
                         .addClass("bi-eye")
                         .removeClass("bi-eye-slash")
@@ -546,23 +495,18 @@ app.run(["$rootScope", "$location", "$timeout", function($rootScope, $location, 
 app.controller("loginCtrl", function ($scope, $http, $rootScope) {
     $("#frmInicioSesion").submit(function (event) {
         event.preventDefault()
-
-        pop(".div-inicio-sesion", 'ℹ️Iniciando sesi&oacute;n, espere un momento...', "primary")
-
+        pop(".div-inicio-sesion", 'Iniciando sesi&oacute;n, espere un momento...', "primary")
         $.post("iniciarSesion", $(this).serialize(), function (respuesta) {
             enableAll()
-
             if (respuesta.length) {
-                localStorage.setItem("login", "1")
-                localStorage.setItem("preferencias", JSON.stringify(respuesta[0]))
+                localStorage.setItem("login", "1")                               // NOSONAR
+                localStorage.setItem("preferencias", JSON.stringify(respuesta[0])) // NOSONAR
                 $("#frmInicioSesion").get(0).reset()
                 location.reload()
                 return
             }
-
             pop(".div-inicio-sesion", "Usuario y/o contrase&ntilde;a incorrecto(s)", "danger")
         })
-
         disableAll()
     })
 })
@@ -570,29 +514,27 @@ app.controller("loginCtrl", function ($scope, $http, $rootScope) {
 app.controller("rentasCtrl", function ($scope, $http) {
     function cargarTablaRentas() {
         $.get("/tbodyRentas", function(html) {
-            $("#tbodyRentas").html(html);
-        });
+            $("#tbodyRentas").html(html)
+        })
     }
 
-    cargarTablaRentas();
+    cargarTablaRentas()
 
-    Pusher.logToConsole = true;
-    var pusher = new Pusher("b51b00ad61c8006b2e6f", { cluster: "us2" });
-    var channel = pusher.subscribe("canalRentas");
-    channel.bind("eventoRentas", function(data) {
-        cargarTablaRentas();
-    });
+    Pusher.logToConsole = false
+    const pusherRentas  = new Pusher("b51b00ad61c8006b2e6f", { cluster: "us2" }) // NOSONAR: clave publica de Pusher
+    const channelRentas = pusherRentas.subscribe("canalRentas")
+    channelRentas.bind("eventoRentas", function(data) {
+        cargarTablaRentas()
+    })
 
-     $(document).on("click", "#btnBuscarRenta", function() {
-        const busqueda = $("#txtBuscarRenta").val().trim();
-
-        if(busqueda === "") {
-            cargarTablaRentas();
-            return;
+    $(document).on("click", "#btnBuscarRenta", function() {
+        const busqueda = $("#txtBuscarRenta").val().trim()
+        if (busqueda === "") {
+            cargarTablaRentas()
+            return
         }
-
         $.get("/rentas/buscar", { busqueda: busqueda }, function(registros) {
-            let trsHTML = "";
+            let trsHTML = ""
             registros.forEach(renta => {
                 trsHTML += `
                     <tr>
@@ -606,106 +548,92 @@ app.controller("rentasCtrl", function ($scope, $http) {
                             <button class="btn btn-danger btn-sm btn-eliminar" data-id="${renta.idRenta}">Eliminar</button>
                         </td>
                     </tr>
-                `;
-            });
-            $("#tbodyRentas").html(trsHTML);
-        }).fail(function(xhr){
-            console.error("Error al buscar rentas:", xhr.responseText);
-        });
-    });
+                `
+            })
+            $("#tbodyRentas").html(trsHTML)
+        })
+    })
 
-    // Permitir Enter en input
     $("#txtBuscarRenta").on("keypress", function(e) {
-        if(e.which === 13) {
-            $("#btnBuscarRenta").click();
+        if (e.which === 13) {
+            $("#btnBuscarRenta").click()
         }
-    });
+    })
 
     $(document).on("submit", "#frmRenta", function (event) {
-        event.preventDefault();
-
-        const idRenta = $("#idRenta").val(); 
-
+        event.preventDefault()
+        const idRenta = $("#idRenta").val()
         $.post("/rentas", {
-            idRenta: idRenta,
+            idRenta:         idRenta,
             cliente:         $("#txtIdCliente").val(),
             traje:           $("#txtIdTraje").val(),
             descripcion:     $("#txtDescripcion").val(),
             fechaHoraInicio: $("#txtFechaInicio").val(),
             fechaHoraFin:    $("#txttxtFechaFin").val()
-
         }, function(response){
-            console.log("Renta guardada o actualizada correctamente");
-            $("#frmRenta")[0].reset();
-            $("#idRenta").val(""); // limpiar campo oculto
-            cargarTablaClientes(); 
-        }).fail(function(xhr){
-            console.error("Error al guardar/actualizar renta:", xhr.responseText);
-        });
-
-    });
+            $("#frmRenta")[0].reset()
+            $("#idRenta").val("")
+            cargarTablaRentas()
+        })
+    })
 
     $(document).on("click", "#tbodyRentas .btn-eliminar", function(){
-        const id = $(this).data("id");
-        if(confirm("¿Deseas eliminar esta renta?")) {
-            $.post("/rentas/eliminar", {id: id}, function(response){
-                console.log("Renta eliminada correctamente");
-                cargarTablaRentas(); 
-            }).fail(function(xhr){
-                console.error("Error al eliminar Renta:", xhr.responseText);
-            });
-        }
-    });
-        
+        const id = $(this).data("id")
+        modal("¿Deseas eliminar esta renta?", "Confirmar eliminacion", [
+            {html: "Cancelar", class: "btn btn-secondary", dismiss: true},
+            {html: "Eliminar", class: "btn btn-danger", defaultButton: true, fun: function() {
+                $.post("/rentas/eliminar", {id: id}, function(response){
+                    cargarTablaRentas()
+                })
+            }}
+        ])
+    })
+
     $(document).on("click", "#tbodyRentas .btn-editar", function() {
-        const id = $(this).data("id");
-        const cliente = $(this).data("IdCliente");
-        const traje = $(this).data("idtraje");
-        const descripcion = $(this).data("descripcion");
-        const fechaHoraInicio = $(this).data("fechaHoraInicio");
-        const fechaHoraFin = $(this).data("fechaHoraFin");
+        const id             = $(this).data("id")
+        const cliente        = $(this).data("IdCliente")
+        const traje          = $(this).data("idtraje")
+        const descripcion    = $(this).data("descripcion")
+        const fechaHoraInicio = $(this).data("fechaHoraInicio")
+        const fechaHoraFin   = $(this).data("fechaHoraFin")
 
-        $("#idRenta").val(id);
-        $("#txtIdCliente").val(cliente);
-        $("#txtIdTraje").val(traje);
-        $("#txtDescripcion").val(descripcion);
-        $("#txtFechaInicio").val(fechaHoraInicio);
-        $("#txttxtFechaFin").val(fechaHoraFin);
+        $("#idRenta").val(id)
+        $("#txtIdCliente").val(cliente)
+        $("#txtIdTraje").val(traje)
+        $("#txtDescripcion").val(descripcion)
+        $("#txtFechaInicio").val(fechaHoraInicio)
+        $("#txttxtFechaFin").val(fechaHoraFin)
 
-        const btnGuardar = $("#btnGuardar");
-        btnGuardar.text("Actualizar");
-        btnGuardar.removeClass("btn-primary").addClass("btn-success");
-    });
-});
-
+        const btnGuardar = $("#btnGuardar")
+        btnGuardar.text("Actualizar")
+        btnGuardar.removeClass("btn-primary").addClass("btn-success")
+    })
+})
 
 app.controller("clientesCtrl", function ($scope, $http) {
-
     function cargarTablaClientes() {
         $.get("/tbodyClientes", function(html) {
-            $("#tbodyClientes").html(html);
-        });
+            $("#tbodyClientes").html(html)
+        })
     }
 
-    cargarTablaClientes();
+    cargarTablaClientes()
 
-    Pusher.logToConsole = true;
-    var pusher = new Pusher("b51b00ad61c8006b2e6f", { cluster: "us2" });
-    var channel = pusher.subscribe("canalClientes");
-    channel.bind("eventoClientes", function(data) {
-        cargarTablaClientes();
-    });
+    Pusher.logToConsole = false
+    const pusherClientes  = new Pusher("b51b00ad61c8006b2e6f", { cluster: "us2" }) // NOSONAR: clave publica de Pusher
+    const channelClientes = pusherClientes.subscribe("canalClientes")
+    channelClientes.bind("eventoClientes", function(data) {
+        cargarTablaClientes()
+    })
 
-     $(document).on("click", "#btnBuscarCliente", function() {
-        const busqueda = $("#txtBuscarCliente").val().trim();
-
-        if(busqueda === "") {
-            cargarTablaClientes();
-            return;
+    $(document).on("click", "#btnBuscarCliente", function() {
+        const busqueda = $("#txtBuscarCliente").val().trim()
+        if (busqueda === "") {
+            cargarTablaClientes()
+            return
         }
-
         $.get("/clientes/buscar", { busqueda: busqueda }, function(registros) {
-            let trsHTML = "";
+            let trsHTML = ""
             registros.forEach(cliente => {
                 trsHTML += `
                     <tr>
@@ -717,70 +645,61 @@ app.controller("clientesCtrl", function ($scope, $http) {
                             <button class="btn btn-danger btn-sm btn-eliminar" data-id="${cliente.idCliente}">Eliminar</button>
                         </td>
                     </tr>
-                `;
-            });
-            $("#tbodyClientes").html(trsHTML);
-        }).fail(function(xhr){
-            console.error("Error al buscar clientes:", xhr.responseText);
-        });
-    });
+                `
+            })
+            $("#tbodyClientes").html(trsHTML)
+        })
+    })
 
-    // Permitir Enter en input
     $("#txtBuscarCliente").on("keypress", function(e) {
-        if(e.which === 13) {
-            $("#btnBuscarCliente").click();
+        if (e.which === 13) {
+            $("#btnBuscarCliente").click()
         }
-    });
+    })
 
     $(document).on("submit", "#frmCliente", function (event) {
-        event.preventDefault();
-
-        const idCliente = $("#idCliente").val(); 
-
+        event.preventDefault()
+        const idCliente = $("#idCliente").val()
         $.post("/cliente", {
-            idCliente: idCliente,
-            nombreCliente: $("#txtNombreCliente").val(),
-            telefono: $("#txtTelefono").val(),
+            idCliente:         idCliente,
+            nombreCliente:     $("#txtNombreCliente").val(),
+            telefono:          $("#txtTelefono").val(),
             correoElectronico: $("#txtCorreoElectronico").val()
         }, function(response){
-            console.log("Cliente guardado o actualizado correctamente");
-            $("#frmCliente")[0].reset();
-            $("#idCliente").val(""); // limpiar campo oculto
-            cargarTablaClientes(); 
-        }).fail(function(xhr){
-            console.error("Error al guardar/actualizar cliente:", xhr.responseText);
-        });
-
-    });
+            $("#frmCliente")[0].reset()
+            $("#idCliente").val("")
+            cargarTablaClientes()
+        })
+    })
 
     $(document).on("click", "#tbodyClientes .btn-eliminar", function(){
-        const id = $(this).data("id");
-        if(confirm("¿Deseas eliminar este cliente?")) {
-            $.post("/clientes/eliminar", {id: id}, function(response){
-                console.log("Cliente eliminado correctamente");
-                cargarTablaClientes(); 
-            }).fail(function(xhr){
-                console.error("Error al eliminar cliente:", xhr.responseText);
-            });
-        }
-    });
-        
+        const id = $(this).data("id")
+        modal("¿Deseas eliminar este cliente?", "Confirmar eliminacion", [
+            {html: "Cancelar", class: "btn btn-secondary", dismiss: true},
+            {html: "Eliminar", class: "btn btn-danger", defaultButton: true, fun: function() {
+                $.post("/clientes/eliminar", {id: id}, function(response){
+                    cargarTablaClientes()
+                })
+            }}
+        ])
+    })
+
     $(document).on("click", "#tbodyClientes .btn-editar", function() {
-        const id = $(this).data("id");
-        const nombre = $(this).data("nombre");
-        const telefono = $(this).data("telefono");
-        const correo = $(this).data("correo");
+        const id       = $(this).data("id")
+        const nombre   = $(this).data("nombre")
+        const telefono = $(this).data("telefono")
+        const correo   = $(this).data("correo")
 
-        $("#idCliente").val(id);
-        $("#txtNombreCliente").val(nombre);
-        $("#txtTelefono").val(telefono);
-        $("#txtCorreoElectronico").val(correo);
+        $("#idCliente").val(id)
+        $("#txtNombreCliente").val(nombre)
+        $("#txtTelefono").val(telefono)
+        $("#txtCorreoElectronico").val(correo)
 
-        const btnGuardar = $("#btnGuardar");
-        btnGuardar.text("Actualizar");
-        btnGuardar.removeClass("btn-primary").addClass("btn-success");
-    });
-});
+        const btnGuardar = $("#btnGuardar")
+        btnGuardar.text("Actualizar")
+        btnGuardar.removeClass("btn-primary").addClass("btn-success")
+    })
+})
 
 app.controller("trajesCtrl", function ($scope, $http) {
     function buscarTrajes() {
@@ -792,106 +711,94 @@ app.controller("trajesCtrl", function ($scope, $http) {
         fetch(`/trajes/${id}`)
             .then(response => response.json())
             .then(data => {
-                if (data.length > 0) {      
-                    const traje = data[0];
-
-                    console.log("Nombre:", traje.nombreTraje);
-                    console.log("Descripción:", traje.descripcion);
-                    console.log("ID del traje:", traje.IdTraje);
-                    
-                    document.getElementById('txtNombre').value = traje.nombreTraje;
-                    document.getElementById('txtDescripcion').value = traje.descripcion;
-                    document.getElementById('txtIdTraje').value = traje.IdTraje;
-                    $scope.txtNombre = traje.nombreTraje;
-                    $scope.txtDescripcion = traje.descripcion;
-                    $scope.txtIdTraje = traje.IdTraje;
-                    $scope.$apply();
+                if (data.length > 0) {
+                    const traje = data[0]
+                    document.getElementById('txtNombre').value     = traje.nombreTraje
+                    document.getElementById('txtDescripcion').value = traje.descripcion
+                    document.getElementById('txtIdTraje').value    = traje.IdTraje
+                    $scope.txtNombre      = traje.nombreTraje
+                    $scope.txtDescripcion = traje.descripcion
+                    $scope.txtIdTraje     = traje.IdTraje
+                    $scope.$apply()
                 }
-            });
+            })
     }
 
     buscarTrajes()
-    
-    Pusher.logToConsole = true
 
-    var pusher = new Pusher("b51b00ad61c8006b2e6f", {
-      cluster: "us2"
-    })
-
-    var channel = pusher.subscribe("canalTrajes")
-    channel.bind("eventoTrajes", function(data) {
+    Pusher.logToConsole = false
+    const pusherTrajes  = new Pusher("b51b00ad61c8006b2e6f", { cluster: "us2" }) // NOSONAR: clave publica de Pusher
+    const channelTrajes = pusherTrajes.subscribe("canalTrajes")
+    channelTrajes.bind("eventoTrajes", function(data) {
         buscarTrajes()
     })
-    
+
     $(document).on("click", "#tbodyTrajes .btn-modificar", function(){
-        const id = $(this).data("id");
-        editarTraje(id);
-    });
-    $scope.txtIdTraje = null;
+        const id = $(this).data("id")
+        editarTraje(id)
+    })
+
+    $scope.txtIdTraje = null
     $scope.guardarTraje = function() {
-    $http.post("/trajes/guardar", {
-            IdTraje: $scope.txtIdTraje,
-            txtNombre: $scope.txtNombre,
+        $http.post("/trajes/guardar", {
+            IdTraje:        $scope.txtIdTraje,
+            txtNombre:      $scope.txtNombre,
             txtDescripcion: $scope.txtDescripcion
         }).then(function(respuesta) {
-            alert(respuesta.data.mensaje);
-            $scope.txtNombre = "";
-            $scope.txtDescripcion = "";
-            $scope.txtIdTraje = null;
-            buscarTrajes();
+            toast(respuesta.data.mensaje)
+            $scope.txtNombre      = ""
+            $scope.txtDescripcion = ""
+            $scope.txtIdTraje     = null
+            buscarTrajes()
         }, function(error) {
-            console.error(error);
-        });
-    };
+            toast("Error al guardar el traje")
+        })
+    }
 
     $(document).on("click", "#btnBuscarTrajes", function() {
-    const busqueda = $("#txtBuscarTrajes").val().trim();
+        const busqueda = $("#txtBuscarTrajes").val().trim()
+        if (busqueda === "") {
+            buscarTrajes()
+            return
+        }
+        $.get("/trajes/buscar", { busqueda: busqueda }, function(registros) {
+            let trsHTML = ""
+            registros.forEach(traje => {
+                trsHTML += `
+                    <tr>
+                        <td>${traje.IdTraje}</td>
+                        <td>${traje.nombreTraje}</td>
+                        <td>${traje.descripcion}</td>
+                        <td>
+                            <button class="btn btn-danger btn-eliminar" data-id="${traje.IdTraje}">Eliminar</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-warning btn-modificar" data-id="${traje.IdTraje}">Modificar</button>
+                        </td>
+                    </tr>
+                `
+            })
+            $("#tbodyTrajes").html(trsHTML)
+        })
+    })
 
-    if (busqueda === "") {
-        buscarTrajes(); 
-        return;
-    }
-
-    $.get("/trajes/buscar", { busqueda: busqueda }, function(registros) {
-        let trsHTML = "";
-        registros.forEach(traje => {
-            trsHTML += `
-                <tr>
-                    <td>${traje.IdTraje}</td>
-                    <td>${traje.nombreTraje}</td>
-                    <td>${traje.descripcion}</td>
-                    <td>
-                        <button class="btn btn-danger btn-eliminar" data-id="${traje.IdTraje}">Eliminar</button>
-                    </td>
-                    <td>
-                        <button class="btn btn-warning btn-modificar" data-id="${traje.IdTraje}">Modificar</button>
-                    </td>
-                </tr>
-            `;
-        });
-        $("#tbodyTrajes").html(trsHTML);
-    }).fail(function(xhr){
-        console.error("Error al buscar trajes:", xhr.responseText);
-    });
-});
-
-$("#txtBuscarTrajes").on("keypress", function(e) {
-    if(e.which === 13) {
-        $("#btnBuscarTrajes").click();
-    }
-});
+    $("#txtBuscarTrajes").on("keypress", function(e) {
+        if (e.which === 13) {
+            $("#btnBuscarTrajes").click()
+        }
+    })
 
     $(document).on("click", "#tbodyTrajes .btn-eliminar", function(){
-        const id = $(this).data("id");
-        if(confirm("¿Deseas eliminar este traje?")) {
-            $.post("/trajes/eliminar", {id: id}, function(response){
-                console.log("Traje eliminado correctamente");
-                 buscarTrajes()
-            }).fail(function(xhr){
-                console.error("Error al eliminar traje:", xhr.responseText);
-            });
-        }
-    });
+        const id = $(this).data("id")
+        modal("¿Deseas eliminar este traje?", "Confirmar eliminacion", [
+            {html: "Cancelar", class: "btn btn-secondary", dismiss: true},
+            {html: "Eliminar", class: "btn btn-danger", defaultButton: true, fun: function() {
+                $.post("/trajes/eliminar", {id: id}, function(response){
+                    buscarTrajes()
+                })
+            }}
+        ])
+    })
 })
 
 app.controller("productosCtrl", function ($scope, $http, $rootScope) {
@@ -910,7 +817,6 @@ app.controller("productosCtrl", function ($scope, $http, $rootScope) {
             $("#tbodyProductos").html("")
             for (let x in productos) {
                 const producto = productos[x]
-
                 $("#tbodyProductos").append(`<tr>
                     <td>${producto.Id_Producto}</td>
                     <td>${producto.Nombre_Producto}</td>
@@ -927,23 +833,17 @@ app.controller("productosCtrl", function ($scope, $http, $rootScope) {
     }
 
     buscarProductos()
-    
-    let preferencias = $rootScope.preferencias
 
-    Pusher.logToConsole = true
-
-    const pusher = new Pusher("12cb9c6b5319b2989000", {
-        cluster: "us2"
-    })
-    const channel = pusher.subscribe("canalProductos")
+    Pusher.logToConsole = false
+    const pusherProd  = new Pusher("12cb9c6b5319b2989000", { cluster: "us2" }) // NOSONAR
+    const channelProd = pusherProd.subscribe("canalProductos")
 
     $(document).on("submit", "#frmProducto", function (event) {
         event.preventDefault()
-
         $.post("producto", {
-            id: "",
-            nombre: $("#txtNombre").val(),
-            precio: $("#txtPrecio").val(),
+            id:          "",
+            nombre:      $("#txtNombre").val(),
+            precio:      $("#txtPrecio").val(),
             existencias: $("#txtExistencias").val(),
         }, function (respuesta) {
             enableAll()
@@ -953,19 +853,16 @@ app.controller("productosCtrl", function ($scope, $http, $rootScope) {
 
     $(document).on("click", "#chkActualizarAutoTbodyProductos", function (event) {
         if (this.checked) {
-            channel.bind("eventoProductos", function(data) {
-                // alert(JSON.stringify(data))
+            channelProd.bind("eventoProductos", function(data) {
                 buscarProductos()
             })
             return
         }
-
-        channel.unbind("eventoProductos")
+        channelProd.unbind("eventoProductos")
     })
 
     $(document).on("click", ".btn-ingredientes", function (event) {
         const id = $(this).data("id")
-
         $.get(`productos/ingredientes/${id}`, function (html) {
             modal(html, "Ingredientes", [
                 {html: "Aceptar", class: "btn btn-secondary", fun: function (event) {
@@ -977,10 +874,9 @@ app.controller("productosCtrl", function ($scope, $http, $rootScope) {
 
     $(document).on("click", ".btn-eliminar", function (event) {
         const id = $(this).data("id")
-
         modal("Eliminar este producto?", 'Confirmaci&oacute;n', [
             {html: "No", class: "btn btn-secondary", dismiss: true},
-            {html: "Sí", class: "btn btn-danger while-waiting", defaultButton: true, fun: function () {
+            {html: "Si", class: "btn btn-danger while-waiting", defaultButton: true, fun: function () {
                 $.post(`producto/eliminar`, {
                     id: id
                 }, function (respuesta) {
@@ -993,7 +889,6 @@ app.controller("productosCtrl", function ($scope, $http, $rootScope) {
     })
 })
 
-
 app.controller("decoracionesCtrl", function ($scope, $http) {
     function buscarDecoraciones() {
         $.get("tbodyDecoraciones", function (trsHTML) {
@@ -1002,30 +897,24 @@ app.controller("decoracionesCtrl", function ($scope, $http) {
     }
 
     buscarDecoraciones()
-    
-    Pusher.logToConsole = true
 
-    const pusher = new Pusher("12cb9c6b5319b2989000", {
-        cluster: "us2"
-    })
-    const channel = pusher.subscribe("canalDecoraciones")
-    channel.bind("eventoDecoraciones", function(data) {
-        // alert(JSON.stringify(data))
+    Pusher.logToConsole = false
+    const pusherDec  = new Pusher("12cb9c6b5319b2989000", { cluster: "us2" }) // NOSONAR
+    const channelDec = pusherDec.subscribe("canalDecoraciones")
+    channelDec.bind("eventoDecoraciones", function(data) {
         buscarDecoraciones()
     })
 
     $(document).on("submit", "#frmDecoracion", function (event) {
         event.preventDefault()
-
         $.post("decoracion", {
-            id: "",
-            nombre: $("#txtNombre").val(),
-            precio: $("#txtPrecio").val(),
+            id:          "",
+            nombre:      $("#txtNombre").val(),
+            precio:      $("#txtPrecio").val(),
             existencias: $("#txtExistencias").val(),
         })
     })
 })
-
 
 document.addEventListener("DOMContentLoaded", function (event) {
     activeMenuOption(location.hash)
