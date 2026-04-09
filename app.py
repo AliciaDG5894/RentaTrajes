@@ -105,22 +105,27 @@ def iniciarSesion():
     usuario    = request.form["usuario"]
     contrasena = request.form["contrasena"]
 
-    con    = con_pool.getconn()
-    cursor = con.cursor(cursor_factory=RealDictCursor)
-    sql    = """
-    SELECT id_usuario      AS "Id_Usuario",
-           nombre_usuario  AS "Nombre_Usuario",
-           tipo_usuario    AS "Tipo_Usuario"
-    FROM usuarios
-    WHERE nombre_usuario = %s
-    AND   contrasena     = %s
-    """
-    cursor.execute(sql, (usuario, contrasena))
-    registros = [dict(r) for r in cursor.fetchall()]
-
-    if cursor:
-        cursor.close()
-    con_pool.putconn(con)
+    con    = None
+    cursor = None
+    registros = []
+    try:
+        con    = con_pool.getconn()
+        cursor = con.cursor(cursor_factory=RealDictCursor)
+        sql    = """
+        SELECT id_usuario      AS "Id_Usuario",
+               nombre_usuario  AS "Nombre_Usuario",
+               tipo_usuario    AS "Tipo_Usuario"
+        FROM usuarios
+        WHERE nombre_usuario = %s
+        AND   contrasena     = %s
+        """
+        cursor.execute(sql, (usuario, contrasena))
+        registros = [dict(r) for r in cursor.fetchall()]
+    finally:
+        if cursor:
+            cursor.close()
+        if con:
+            con_pool.putconn(con)
 
     session["login"]      = False
     session["login-usr"]  = None
