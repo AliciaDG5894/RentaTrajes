@@ -74,6 +74,34 @@ app.config(function ($routeProvider, $locationProvider) {
         redirectTo: "/"
     })
 })
+
+// --- Funciones extraídas para reducir anidamiento ---
+function cerrarSesionCallback($rootScope, $timeout, cerrarSesion) {
+    $.post("cerrarSesion")
+    $timeout(cerrarSesion, 500)
+}
+
+function validarRedireccionamiento(path, defaultRouteAuth, $rootScope, $timeout, cerrarSesion) {
+    const login = localStorage.getItem("login")
+
+    if (login) {
+        if (path == "/") {
+            window.location = defaultRouteAuth
+            return
+        }
+
+        $(".btn-cerrar-sesion").click(function (event) {
+            cerrarSesionCallback($rootScope, $timeout, cerrarSesion)
+        })
+    }
+    else if ((path != "/")
+        &&  (path.indexOf("emailToken") == -1)
+        &&  (path.indexOf("resetPassToken") == -1)) {
+        window.location = "#/"
+    }
+}
+// --- Fin funciones extraídas ---
+
 app.run(["$rootScope", "$location", "$timeout", function($rootScope, $location, $timeout) {
     $rootScope.slide             = ""
     $rootScope.spinnerGrow       = false
@@ -161,29 +189,7 @@ app.run(["$rootScope", "$location", "$timeout", function($rootScope, $location, 
 
         // solo hacer si se carga una ruta existente que no sea el splash
         if (path.indexOf("splash") == -1) {
-            // validar login
-            function validarRedireccionamiento() {
-                const login = localStorage.getItem("login")
 
-                if (login) {
-                    if (path == "/") {
-                        window.location = defaultRouteAuth
-                        return
-                    }
-
-                    $(".btn-cerrar-sesion").click(function (event) {
-                        $.post("cerrarSesion")
-                        $timeout(function () {
-                            cerrarSesion()
-                        }, 500)
-                    })
-                }
-                else if ((path != "/")
-                    &&  (path.indexOf("emailToken") == -1)
-                    &&  (path.indexOf("resetPassToken") == -1)) {
-                    window.location = "#/"
-                }
-            }
             function cerrarSesion() {
                 localStorage.removeItem("JWT")
                 localStorage.removeItem("login")
@@ -201,13 +207,15 @@ app.run(["$rootScope", "$location", "$timeout", function($rootScope, $location, 
 
                 $rootScope.redireccionar(login, preferencias)
             }
+
             $rootScope.redireccionar = function (login, preferencias) {
                 $rootScope.login        = login
                 $rootScope.preferencias = preferencias
 
-                validarRedireccionamiento()
+                validarRedireccionamiento(path, defaultRouteAuth, $rootScope, $timeout, cerrarSesion)
             }
-            validarRedireccionamiento()
+
+            validarRedireccionamiento(path, defaultRouteAuth, $rootScope, $timeout, cerrarSesion)
 
 
             // animate.css
@@ -1022,11 +1030,3 @@ app.controller("decoracionesCtrl", function ($scope, $http) {
 document.addEventListener("DOMContentLoaded", function (event) {
     activeMenuOption(location.hash)
 })
-
-
-
-
-
-
-
-
