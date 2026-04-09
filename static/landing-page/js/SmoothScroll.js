@@ -245,8 +245,8 @@ function scrollArray(elem, left, top) {
             }
             
             // only need the difference
-            var x = (item.x * position - item.lastX) >> 0;
-            var y = (item.y * position - item.lastY) >> 0;
+            var x = Math.trunc(item.x * position - item.lastX);
+            var y = Math.trunc(item.y * position - item.lastY);
             
             // add this to the total scrolling
             scrollX += x;
